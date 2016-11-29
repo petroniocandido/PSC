@@ -12,6 +12,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -39,7 +41,40 @@ public class ClienteDAO implements ClienteRepositorio {
     
     @Override
     public Cliente Abrir(String cpf) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        try {
+            
+            // Crio a consulta sql
+            PreparedStatement sql = conn.prepareStatement("select id,nome,cpf,dataNascimento "
+                    + "from clientes where cpf = ?");
+            
+            // Passo os parâmentros para a consulta sql
+            sql.setString(1, cpf);
+            
+            // Executo a consulta sql e pego os resultados
+            ResultSet resultado = sql.executeQuery();
+            
+            // Verifica se algum registro foi retornado na consulta
+            if(resultado.next()){
+                
+                // Posso os dados do resultado para o objeto
+                Cliente tmp = new Cliente();
+                tmp.setId(resultado.getInt(1));
+                tmp.setNome(resultado.getString(2));
+                tmp.setCpf(resultado.getString(3));
+                tmp.setDataNascimento(resultado.getDate(4));
+                
+                // Retorna o objeto
+                return tmp;
+            }            
+            
+        } catch(ErroValidacao ex){ 
+            System.out.println(ex);
+        
+        } catch(SQLException ex){
+            System.out.println(ex);
+        }
+        
+        return null;
     }
 
     @Override
@@ -51,12 +86,10 @@ public class ClienteDAO implements ClienteRepositorio {
                 // Cria a consulta sql
                 PreparedStatement sql = conn.prepareStatement("INSERT INTO clientes(nome,cpf,dataNascimento) "
                         + "VALUES(?,?,?)");
-                
-                
                 // Passa os parâmetros para a consulta SQL
-                sql.setString(1, obj.getNome());
-                sql.setString(2, obj.getCpf());
-                sql.setDate(3, new java.sql.Date(obj.getDataNascimento().getTime()));
+
+                
+                preencherObjeto(sql, obj);
                 
                 
                 // Executa a consulta SQL
@@ -66,6 +99,21 @@ public class ClienteDAO implements ClienteRepositorio {
                 
             } else {
                 // Objeto já está no BD, atualizar
+                
+                                // Cria a consulta sql
+                PreparedStatement sql = conn.prepareStatement("UPDATE clientes SET nome = ?, "
+                        + "cpf = ?, dataNascimento = ? "
+                        + "WHERE id = ?");
+                
+                
+                preencherObjeto(sql, obj);
+                sql.setInt(4,obj.getId());
+                
+                
+                // Executa a consulta SQL
+                sql.executeUpdate();
+
+                
             }
             
             return true;
@@ -77,9 +125,38 @@ public class ClienteDAO implements ClienteRepositorio {
         return false;
     }
 
+    protected void preencherObjeto(PreparedStatement sql, Cliente obj) throws SQLException {
+        // Passa os parâmetros para a consulta SQL
+        sql.setString(1, obj.getNome());
+        sql.setString(2, obj.getCpf());
+        sql.setDate(3, new java.sql.Date(obj.getDataNascimento().getTime()));
+    }
+
     @Override
     public boolean Apagar(Cliente obj) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        try {
+            if(obj.getId() > 0){
+                // Objeto não está no BD, inserir
+
+                // Cria a consulta sql
+                PreparedStatement sql = conn.prepareStatement("DELETE FROM clientes WHERE id = ? ");
+                
+                
+                // Passa os parâmetros para a consulta SQL
+                sql.setInt(1, obj.getId());
+                                
+                // Executa a consulta SQL
+                sql.executeUpdate();
+            
+            }
+            
+            return true;
+        
+        } catch(SQLException e){
+            System.out.print(e);
+            
+        }
+        return false;
     }
 
     @Override
@@ -104,7 +181,7 @@ public class ClienteDAO implements ClienteRepositorio {
                 tmp.setId(resultado.getInt(1));
                 tmp.setNome(resultado.getString(2));
                 tmp.setCpf(resultado.getString(3));
-                //tmp.setDataNascimento(resultado.getString(2));
+                tmp.setDataNascimento(resultado.getDate(4));
                 
                 // Retorna o objeto
                 return tmp;
@@ -122,7 +199,77 @@ public class ClienteDAO implements ClienteRepositorio {
 
     @Override
     public List<Cliente> Buscar(Cliente filtro) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        
+        List<Cliente> ret = new ArrayList<>();
+        
+        String consulta_sql = "select id,nome,cpf,dataNascimento "
+                    + "from clientes ";
+        String where = "";
+        
+        HashMap<String,Integer> parametros = new HashMap<>();
+        int count = 0;
+        
+        
+        if(filtro.getId() > 0){
+            where = where + "id = ?";
+            count++;
+            parametros.put("id",count);
+        }
+        
+        if(filtro.getNome() != null){
+            if(where.length() > 0) where = where + " and ";
+            
+            where = where + "nome = ?";
+            count++;
+            parametros.put("nome",count);
+        }
+        
+        if(filtro.getCpf() != null){
+            if(where.length() > 0) where = where + " and ";
+            
+            where = where + "cpf = ?";
+            count++;
+            parametros.put("cpf",count);
+        }
+        
+        if(where.length() > 0 )
+            where = "WHERE " + where;
+        
+        try {
+            
+            // Crio a consulta sql
+            PreparedStatement sql = conn.prepareStatement(consulta_sql + where);
+            
+            // Passo os parâmentros para a consulta sql
+            if(filtro.getId() > 0) sql.setInt(parametros.get("id"), filtro.getId());
+            if(filtro.getNome() != null) sql.setString(parametros.get("nome"), filtro.getNome());
+            if(filtro.getCpf() != null) sql.setString(parametros.get("cpf"), filtro.getCpf());
+            
+            // Executo a consulta sql e pego os resultados
+            ResultSet resultado = sql.executeQuery();
+                        
+            // Verifica se algum registro foi retornado na consulta
+            while(resultado.next()){
+                
+                // Posso os dados do resultado para o objeto
+                Cliente tmp = new Cliente();
+                tmp.setId(resultado.getInt(1));
+                tmp.setNome(resultado.getString(2));
+                tmp.setCpf(resultado.getString(3));
+                tmp.setDataNascimento(resultado.getDate(4));
+                
+                // Adiciona o objeto à lista
+                ret.add(tmp);
+            }            
+            
+        } catch(ErroValidacao ex){ 
+            System.out.println(ex);
+        
+        } catch(SQLException ex){
+            System.out.println(ex);
+        }
+        
+        return ret;
     }
     
 }
