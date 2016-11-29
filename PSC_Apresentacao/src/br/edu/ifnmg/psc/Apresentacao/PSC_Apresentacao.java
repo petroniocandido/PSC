@@ -7,9 +7,11 @@
 package br.edu.ifnmg.psc.Apresentacao;
 
 import br.edu.ifnmg.psc.Aplicacao.Cliente;
+import br.edu.ifnmg.psc.Aplicacao.ClienteRepositorio;
 import br.edu.ifnmg.psc.Aplicacao.ErroValidacao;
 import br.edu.ifnmg.psc.Persistencia.*;
 import java.sql.SQLException;
+import java.util.Date;
 
 /**
  *
@@ -24,18 +26,40 @@ public class PSC_Apresentacao {
        // DB.Iniciar();
        // DB.criarConexao();
        
-       Cliente c = new Cliente();
+       abrir();      
+       
+    }
+    
+    public static void abrir() {
+        Cliente c;
+        
+        ClienteRepositorio bd_cliente = new ClienteDAO();
+        
+        
+        c = bd_cliente.Abrir(1);
+        
+        System.out.println(c);
+        
+    }
+    
+    public static void criar() {
+        Cliente c = new Cliente();
        
        try {
-           c.setCpf("920.489.356-723");
-           System.out.print("Rodou tudo ok!");
+           c.setNome("Petrônio Cândido de Lima e Silva");
+           c.setCpf("920.489.356-72");
+           c.setDataNascimento(new Date());
+           
+           ClienteRepositorio bd_cliente = new ClienteDAO();
+           
+           bd_cliente.Salvar(c);
+           
+           System.out.print(c);
        }
        catch(ErroValidacao ex) {
-           System.out.print("Aconteceu um erro! :-(") ;
-           System.out.print(ex);
+           System.out.println("Aconteceu um erro! :-(") ;
+           System.out.println(ex);
        } 
-       
-       
     }
     
 }
