@@ -15,29 +15,58 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
  * @author petronio
  */
-public class ClienteDAO implements ClienteRepositorio {
+public class ClienteDAO extends DAOGenerico<Cliente> implements ClienteRepositorio {
 
-    Connection conn;
-
+    
     public ClienteDAO() {
-        try {
-            DB.Iniciar();
-            conn = DB.criarConexao();
-        } catch(ClassNotFoundException ex){ 
-            System.out.println("Driver não encontrado!");
-        } catch(SQLException ex){ 
-            System.out.println("Usuário/senha errados!");
-        } catch(Exception ex){
-            System.out.println(ex);
-        }
+        setConsultaAbrir("select id,nome,cpf,dataNascimento from clientes where id = ?");
+        setConsultaApagar("DELETE FROM clientes WHERE id = ? ");
+        setConsultaInserir("INSERT INTO clientes(nome,cpf,dataNascimento) VALUES(?,?,?)");
+        setConsultaAlterar("UPDATE clientes SET nome = ?, "
+                        + "cpf = ?, dataNascimento = ? "
+                        + "WHERE id = ?");
     }
     
+    @Override
+    protected Cliente preencheObjeto(ResultSet resultado) {
+        // Posso os dados do resultado para o objeto
+                Cliente tmp = new Cliente();
+        try {
+            tmp.setId(resultado.getInt(1));
+        
+                tmp.setNome(resultado.getString(2));
+                tmp.setCpf(resultado.getString(3));
+                tmp.setDataNascimento(resultado.getDate(4));
+         } catch (SQLException ex) {
+            Logger.getLogger(ClienteDAO.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ErroValidacao ex) {     
+            Logger.getLogger(ClienteDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+                // Retorna o objeto
+                return tmp;
+    }
     
+    @Override
+    protected void preencheConsulta(PreparedStatement sql, Cliente obj) {
+        try {
+            // Passa os parâmetros para a consulta SQL
+            sql.setString(1, obj.getNome());
+            sql.setString(2, obj.getCpf());
+            sql.setDate(3, new java.sql.Date(obj.getDataNascimento().getTime()));
+            
+            if(obj.getId() > 0) sql.setInt(4,obj.getId());
+            
+        } catch (SQLException ex) {
+            Logger.getLogger(ClienteDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
     
     @Override
     public Cliente Abrir(String cpf) {
@@ -56,147 +85,15 @@ public class ClienteDAO implements ClienteRepositorio {
             // Verifica se algum registro foi retornado na consulta
             if(resultado.next()){
                 
-                // Posso os dados do resultado para o objeto
-                Cliente tmp = new Cliente();
-                tmp.setId(resultado.getInt(1));
-                tmp.setNome(resultado.getString(2));
-                tmp.setCpf(resultado.getString(3));
-                tmp.setDataNascimento(resultado.getDate(4));
-                
-                // Retorna o objeto
-                return tmp;
+                return preencheObjeto(resultado);
             }            
-            
-        } catch(ErroValidacao ex){ 
-            System.out.println(ex);
-        
-        } catch(SQLException ex){
+        }  catch(SQLException ex){
             System.out.println(ex);
         }
         
         return null;
     }
-
-    @Override
-    public boolean Salvar(Cliente obj) {
-        try {
-            if(obj.getId() == 0){
-                // Objeto não está no BD, inserir
-
-                // Cria a consulta sql
-                PreparedStatement sql = conn.prepareStatement("INSERT INTO clientes(nome,cpf,dataNascimento) "
-                        + "VALUES(?,?,?)");
-                // Passa os parâmetros para a consulta SQL
-
-                
-                preencherObjeto(sql, obj);
-                
-                
-                // Executa a consulta SQL
-                sql.executeUpdate();
-                
-                
-                
-            } else {
-                // Objeto já está no BD, atualizar
-                
-                                // Cria a consulta sql
-                PreparedStatement sql = conn.prepareStatement("UPDATE clientes SET nome = ?, "
-                        + "cpf = ?, dataNascimento = ? "
-                        + "WHERE id = ?");
-                
-                
-                preencherObjeto(sql, obj);
-                sql.setInt(4,obj.getId());
-                
-                
-                // Executa a consulta SQL
-                sql.executeUpdate();
-
-                
-            }
-            
-            return true;
-        
-        } catch(SQLException e){
-            System.out.print(e);
-            
-        }
-        return false;
-    }
-
-    protected void preencherObjeto(PreparedStatement sql, Cliente obj) throws SQLException {
-        // Passa os parâmetros para a consulta SQL
-        sql.setString(1, obj.getNome());
-        sql.setString(2, obj.getCpf());
-        sql.setDate(3, new java.sql.Date(obj.getDataNascimento().getTime()));
-    }
-
-    @Override
-    public boolean Apagar(Cliente obj) {
-        try {
-            if(obj.getId() > 0){
-                // Objeto não está no BD, inserir
-
-                // Cria a consulta sql
-                PreparedStatement sql = conn.prepareStatement("DELETE FROM clientes WHERE id = ? ");
-                
-                
-                // Passa os parâmetros para a consulta SQL
-                sql.setInt(1, obj.getId());
-                                
-                // Executa a consulta SQL
-                sql.executeUpdate();
-            
-            }
-            
-            return true;
-        
-        } catch(SQLException e){
-            System.out.print(e);
-            
-        }
-        return false;
-    }
-
-    @Override
-    public Cliente Abrir(int id) {
-        try {
-            
-            // Crio a consulta sql
-            PreparedStatement sql = conn.prepareStatement("select id,nome,cpf,dataNascimento "
-                    + "from clientes where id = ?");
-            
-            // Passo os parâmentros para a consulta sql
-            sql.setInt(1, id);
-            
-            // Executo a consulta sql e pego os resultados
-            ResultSet resultado = sql.executeQuery();
-            
-            // Verifica se algum registro foi retornado na consulta
-            if(resultado.next()){
-                
-                // Posso os dados do resultado para o objeto
-                Cliente tmp = new Cliente();
-                tmp.setId(resultado.getInt(1));
-                tmp.setNome(resultado.getString(2));
-                tmp.setCpf(resultado.getString(3));
-                tmp.setDataNascimento(resultado.getDate(4));
-                
-                // Retorna o objeto
-                return tmp;
-            }            
-            
-        } catch(ErroValidacao ex){ 
-            System.out.println(ex);
-        
-        } catch(SQLException ex){
-            System.out.println(ex);
-        }
-        
-        return null;
-    }
-
+    
     @Override
     public List<Cliente> Buscar(Cliente filtro) {
         
@@ -271,5 +168,7 @@ public class ClienteDAO implements ClienteRepositorio {
         
         return ret;
     }
+
+    
     
 }
