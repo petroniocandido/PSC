@@ -8,7 +8,6 @@ package br.edu.ifnmg.psc.Persistencia;
 import br.edu.ifnmg.psc.Aplicacao.Cliente;
 import br.edu.ifnmg.psc.Aplicacao.ClienteRepositorio;
 import br.edu.ifnmg.psc.Aplicacao.ErroValidacao;
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -32,6 +31,7 @@ public class ClienteDAO extends DAOGenerico<Cliente> implements ClienteRepositor
         setConsultaAlterar("UPDATE clientes SET nome = ?, "
                         + "cpf = ?, dataNascimento = ? "
                         + "WHERE id = ?");
+        setConsultaBusca("select id,nome,cpf,dataNascimento from clientes ");
     }
     
     @Override
@@ -95,78 +95,27 @@ public class ClienteDAO extends DAOGenerico<Cliente> implements ClienteRepositor
     }
     
     @Override
-    public List<Cliente> Buscar(Cliente filtro) {
+    protected void preencheFiltros(Cliente filtro) {
+        if(filtro.getId() > 0) adicionarFiltro("id", "=");
         
-        List<Cliente> ret = new ArrayList<>();
+        if(filtro.getNome() != null) adicionarFiltro("nome", " like ");
         
-        String consulta_sql = "select id,nome,cpf,dataNascimento "
-                    + "from clientes ";
-        String where = "";
-        
-        HashMap<String,Integer> parametros = new HashMap<>();
-        int count = 0;
-        
-        
-        if(filtro.getId() > 0){
-            where = where + "id = ?";
-            count++;
-            parametros.put("id",count);
-        }
-        
-        if(filtro.getNome() != null){
-            if(where.length() > 0) where = where + " and ";
-            
-            where = where + "nome = ?";
-            count++;
-            parametros.put("nome",count);
-        }
-        
-        if(filtro.getCpf() != null){
-            if(where.length() > 0) where = where + " and ";
-            
-            where = where + "cpf = ?";
-            count++;
-            parametros.put("cpf",count);
-        }
-        
-        if(where.length() > 0 )
-            where = "WHERE " + where;
-        
+        if(filtro.getCpf() != null) adicionarFiltro("cpf", "=");
+    }
+
+    @Override
+    protected void preencheParametros(PreparedStatement sql, Cliente filtro) {
         try {
-            
-            // Crio a consulta sql
-            PreparedStatement sql = conn.prepareStatement(consulta_sql + where);
-            
-            // Passo os parâmentros para a consulta sql
-            if(filtro.getId() > 0) sql.setInt(parametros.get("id"), filtro.getId());
-            if(filtro.getNome() != null) sql.setString(parametros.get("nome"), filtro.getNome());
-            if(filtro.getCpf() != null) sql.setString(parametros.get("cpf"), filtro.getCpf());
-            
-            // Executo a consulta sql e pego os resultados
-            ResultSet resultado = sql.executeQuery();
-                        
-            // Verifica se algum registro foi retornado na consulta
-            while(resultado.next()){
-                
-                // Posso os dados do resultado para o objeto
-                Cliente tmp = new Cliente();
-                tmp.setId(resultado.getInt(1));
-                tmp.setNome(resultado.getString(2));
-                tmp.setCpf(resultado.getString(3));
-                tmp.setDataNascimento(resultado.getDate(4));
-                
-                // Adiciona o objeto à lista
-                ret.add(tmp);
-            }            
-            
-        } catch(ErroValidacao ex){ 
-            System.out.println(ex);
         
-        } catch(SQLException ex){
-            System.out.println(ex);
+            int cont = 1;
+            if(filtro.getId() > 0){ sql.setInt(cont, filtro.getId()); cont++; }
+            if(filtro.getNome() != null ){ sql.setString(cont, filtro.getNome()); cont++; }
+            if(filtro.getCpf() != null){ sql.setString(cont, filtro.getCpf()); cont++; }
+            
+        
+        } catch (SQLException ex) {
+            Logger.getLogger(ClienteDAO.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
-        return ret;
     }
 
     

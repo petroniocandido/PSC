@@ -7,11 +7,9 @@ package br.edu.ifnmg.psc.Persistencia;
 
 import br.edu.ifnmg.psc.Aplicacao.Produto;
 import br.edu.ifnmg.psc.Aplicacao.ProdutoRepositorio;
-import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -26,6 +24,7 @@ public class ProdutoDAO extends DAOGenerico<Produto> implements ProdutoRepositor
         setConsultaApagar("delete from produtos where id = ?");
         setConsultaInserir("insert into produtos(nome,preco) values(?,?)");
         setConsultaAlterar("update produtos set nome = ?, preco = ? where id = ?");
+        setConsultaBusca("select id, nome, preco from produtos ");
     }
   
     
@@ -56,9 +55,23 @@ public class ProdutoDAO extends DAOGenerico<Produto> implements ProdutoRepositor
     }
    
 
+   
     @Override
-    public List<Produto> Buscar(Produto filtro) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    protected void preencheFiltros(Produto filtro) {
+        if(filtro.getId() > 0 ) adicionarFiltro("id", "=");
+        if(filtro.getNome() != null) adicionarFiltro("nome", " like ");
+        if(filtro.getPreco() != null) adicionarFiltro("preco", " = ");
+    }
+
+    @Override
+    protected void preencheParametros(PreparedStatement sql, Produto filtro) {
+        try  {
+        int cont = 1;
+        if(filtro.getId() > 0 ) { sql.setInt(cont, filtro.getId()); cont++; }
+        if(filtro.getNome() != null) { sql.setString(cont, filtro.getNome()); cont++;  }
+        if(filtro.getPreco() != null) { sql.setBigDecimal(cont, filtro.getPreco()); cont++;  }
+        }
+        catch(Exception ex) {}
     }
 
     
