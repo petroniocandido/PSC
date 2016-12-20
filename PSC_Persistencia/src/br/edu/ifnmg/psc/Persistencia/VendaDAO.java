@@ -35,6 +35,7 @@ public class VendaDAO extends DAOGenerico<Venda> implements VendaRepositorio {
                         + "dataVenda = ?, valorTotal = ? "
                         + "WHERE id = ?");
         setConsultaBusca("select id,cliente_id,dataVenda,valorTotal from vendas ");
+        setConsultaUltimoId("select max(id) from vendas where cliente_id = ? and dataVenda = ? and valorTotal = ?");
         clientes = new ClienteDAO();
         produtos = new ProdutoDAO();
     }

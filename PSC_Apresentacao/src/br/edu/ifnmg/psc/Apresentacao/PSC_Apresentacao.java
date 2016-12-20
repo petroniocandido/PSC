@@ -9,7 +9,13 @@ package br.edu.ifnmg.psc.Apresentacao;
 import br.edu.ifnmg.psc.Aplicacao.Cliente;
 import br.edu.ifnmg.psc.Aplicacao.ClienteRepositorio;
 import br.edu.ifnmg.psc.Aplicacao.ErroValidacao;
+import br.edu.ifnmg.psc.Aplicacao.Produto;
+import br.edu.ifnmg.psc.Aplicacao.ProdutoRepositorio;
+import br.edu.ifnmg.psc.Aplicacao.Venda;
+import br.edu.ifnmg.psc.Aplicacao.VendaItem;
+import br.edu.ifnmg.psc.Aplicacao.VendaRepositorio;
 import br.edu.ifnmg.psc.Persistencia.*;
+import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
@@ -27,8 +33,32 @@ public class PSC_Apresentacao {
        // DB.Iniciar();
        // DB.criarConexao();
        
-       buscar();      
+       criarVenda();
        
+    }
+    
+    public static void criarVenda() {
+        ProdutoRepositorio bd_produto = new ProdutoDAO();
+        ClienteRepositorio bd_cliente = new ClienteDAO();
+        VendaRepositorio bd_venda = new VendaDAO();
+        Cliente c = bd_cliente.Abrir(1);
+        Produto p = bd_produto.Abrir(1);
+        
+        Venda v = new Venda(0, c, new Date(), new BigDecimal("0.00"));
+        
+        bd_venda.Salvar(v);
+        
+        v.addItem( new VendaItem(v, p, 1) );
+        
+        bd_venda.Salvar(v);
+    }
+    
+    public static void criarProduto(){
+        Produto p = new Produto(0, "Sabão", new BigDecimal("1.00"));
+        
+        ProdutoRepositorio bd_produto = new ProdutoDAO();
+        
+        bd_produto.Salvar(p);
     }
     
     public static void buscar() {

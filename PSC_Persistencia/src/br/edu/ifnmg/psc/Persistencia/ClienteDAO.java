@@ -29,6 +29,7 @@ public class ClienteDAO extends DAOGenerico<Cliente> implements ClienteRepositor
                         + "cpf = ?, dataNascimento = ? "
                         + "WHERE id = ?");
         setConsultaBusca("select id,nome,cpf,dataNascimento from clientes ");
+        setConsultaUltimoId("select max(id) from clientes where nome = ? and cpf = ? and dataNascimento = ?");
     }
     
     @Override
