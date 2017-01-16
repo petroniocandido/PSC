@@ -113,7 +113,6 @@ public class PSC_Apresentacao {
         
         ClienteRepositorio bd_cliente = new ClienteDAO();
         
-        
         c = bd_cliente.Abrir(1);
         
         System.out.println(c);
