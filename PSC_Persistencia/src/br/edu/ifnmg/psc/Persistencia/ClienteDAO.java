@@ -94,6 +94,7 @@ public class ClienteDAO extends DAOGenerico<Cliente> implements ClienteRepositor
     
     @Override
     protected void preencheFiltros(Cliente filtro) {
+        
         if(filtro.getId() > 0) adicionarFiltro("id", "=");
         if(filtro.getNome() != null) adicionarFiltro("nome", " like ");
         if(filtro.getCpf() != null) adicionarFiltro("cpf", "=");
@@ -104,8 +105,11 @@ public class ClienteDAO extends DAOGenerico<Cliente> implements ClienteRepositor
         try {
             int cont = 1;
             if(filtro.getId() > 0){ sql.setInt(cont, filtro.getId()); cont++; }
-            if(filtro.getNome() != null ){ sql.setString(cont, filtro.getNome()); cont++; }
-            if(filtro.getCpf() != null){ sql.setString(cont, filtro.getCpf()); cont++; }
+            if(filtro.getNome() != null ){ sql.setString(cont, filtro.getNome() +"%"); cont++; }
+            if(filtro.getCpf() != null){ 
+                sql.setString(cont, filtro.getCpf()); 
+                cont++; 
+            }
             
         
         } catch (SQLException ex) {

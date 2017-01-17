@@ -159,10 +159,12 @@ public abstract class DAOGenerico<T extends Entidade> implements Repositorio<T> 
     public List<T> Buscar(T filtro) {
         List<T> ret = new ArrayList<>();
 
-        preencheFiltros(filtro);
+        if(filtro != null){
+            preencheFiltros(filtro);
 
-        if (where.length() > 0) {
-            where = "WHERE " + where;
+            if (where.length() > 0) {
+                where = "WHERE " + where;
+            }
         }
 
         try {
@@ -170,7 +172,8 @@ public abstract class DAOGenerico<T extends Entidade> implements Repositorio<T> 
             // Crio a consulta sql
             PreparedStatement sql = conn.prepareStatement(getConsultaBusca() + where);
 
-            preencheParametros(sql, filtro);
+            if(filtro != null)
+                preencheParametros(sql, filtro);
 
             // Executo a consulta sql e pego os resultados
             ResultSet resultado = sql.executeQuery();
