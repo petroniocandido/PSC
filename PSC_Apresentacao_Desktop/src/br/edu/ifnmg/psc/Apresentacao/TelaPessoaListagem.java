@@ -20,6 +20,8 @@ public class TelaPessoaListagem extends javax.swing.JInternalFrame {
 
     ClienteRepositorio dao = GerenciadorReferencias.getCliente();
     
+    TelaPessoaEditar editar;
+    
     /**
      * Creates new form TelaPessoaListagem
      */
@@ -77,6 +79,11 @@ public class TelaPessoaListagem extends javax.swing.JInternalFrame {
         setTitle("Listagem de Pessoas");
 
         btnNovo.setText("Novo");
+        btnNovo.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnNovoActionPerformed(evt);
+            }
+        });
 
         btnBuscar.setText("Buscar");
         btnBuscar.addActionListener(new java.awt.event.ActionListener() {
@@ -109,6 +116,11 @@ public class TelaPessoaListagem extends javax.swing.JInternalFrame {
             }
         });
         tblBusca.getTableHeader().setReorderingAllowed(false);
+        tblBusca.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                tblBuscaMouseClicked(evt);
+            }
+        });
         jScrollPane1.setViewportView(tblBusca);
         if (tblBusca.getColumnModel().getColumnCount() > 0) {
             tblBusca.getColumnModel().getColumn(0).setResizable(false);
@@ -151,6 +163,36 @@ public class TelaPessoaListagem extends javax.swing.JInternalFrame {
         buscar( txtBusca.getText() );
     }//GEN-LAST:event_btnBuscarActionPerformed
 
+    private void tblBuscaMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblBuscaMouseClicked
+        int selecionada = tblBusca.getSelectedRow();
+        
+        int id = Integer.parseInt( tblBusca.getModel().getValueAt(selecionada, 0).toString() );
+        
+        editarCliente(id);
+    }//GEN-LAST:event_tblBuscaMouseClicked
+
+    private void btnNovoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnNovoActionPerformed
+        editarCliente(0);
+    }//GEN-LAST:event_btnNovoActionPerformed
+
+    
+    public void editarCliente(int id){
+        Cliente entidade;
+        if(id == 0)
+            entidade = new Cliente(0, "", "000.000.000-00", null);
+        else
+            entidade = dao.Abrir(id);
+        
+        editar = new TelaPessoaEditar();
+        
+        editar.setEntidade(entidade);
+        
+        editar.setListagem(this);
+        
+        this.getParent().add(editar);
+        editar.setVisible(true);
+        this.setVisible(false);
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnBuscar;
