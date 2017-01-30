@@ -40,6 +40,11 @@ public class TelaPrincipal extends javax.swing.JFrame {
         jMenuGerenciar.setText("Gerenciar");
 
         jMenuItemVendas.setText("Vendas");
+        jMenuItemVendas.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItemVendasActionPerformed(evt);
+            }
+        });
         jMenuGerenciar.add(jMenuItemVendas);
 
         jMenuItemClientes.setText("Clientes");
@@ -90,6 +95,12 @@ public class TelaPrincipal extends javax.swing.JFrame {
         this.add(tela);
         tela.setVisible(true);
     }//GEN-LAST:event_jMenuItemProdutosActionPerformed
+
+    private void jMenuItemVendasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemVendasActionPerformed
+        TelaVendaListagem tela = new TelaVendaListagem();
+        this.add(tela);
+        tela.setVisible(true);
+    }//GEN-LAST:event_jMenuItemVendasActionPerformed
 
     /**
      * @param args the command line arguments

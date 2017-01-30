@@ -48,7 +48,9 @@ public class VendaDAO extends DAOGenerico<Venda> implements VendaRepositorio {
             
             tmp.setCliente( clientes.Abrir( resultado.getInt(2) ));
             
-            tmp.setValorTotal( resultado.getBigDecimal(3) );
+            tmp.setData( resultado.getDate(3)  );
+            
+            tmp.setValorTotal( resultado.getBigDecimal(4) );
             
             tmp.setItens(  carregaItens(tmp)  );
             

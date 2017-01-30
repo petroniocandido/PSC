@@ -36,7 +36,7 @@ public class GerenciadorReferencias {
     
     private static VendaRepositorio daoVenda;
 
-    public static VendaRepositorio getDaoVenda() {
+    public static VendaRepositorio getVenda() {
         if(daoVenda == null)
             daoVenda = new VendaDAO();
         return daoVenda;
