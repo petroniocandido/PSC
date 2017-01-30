@@ -8,17 +8,21 @@ package br.edu.ifnmg.psc.Apresentacao;
 import br.edu.ifnmg.psc.Aplicacao.Cliente;
 import br.edu.ifnmg.psc.Aplicacao.ClienteRepositorio;
 import br.edu.ifnmg.psc.Aplicacao.ErroValidacao;
+import br.edu.ifnmg.psc.Aplicacao.Produto;
 import br.edu.ifnmg.psc.Aplicacao.ProdutoRepositorio;
 import br.edu.ifnmg.psc.Aplicacao.Venda;
 import br.edu.ifnmg.psc.Aplicacao.VendaItem;
 import br.edu.ifnmg.psc.Aplicacao.VendaRepositorio;
+import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.TimeZone;
 import java.util.Vector;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JOptionPane;
@@ -41,6 +45,8 @@ public class TelaVendaEditar extends javax.swing.JInternalFrame {
     TelaVendaListagem listagem;
     
     Venda entidade;
+    
+    VendaItem itemSelecionado;
     
     /**
      * Creates new form TelaVendaEditar
@@ -202,6 +208,11 @@ public class TelaVendaEditar extends javax.swing.JInternalFrame {
 
             }
         ));
+        tblItens.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                tblItensMouseClicked(evt);
+            }
+        });
         jScrollPane1.setViewportView(tblItens);
 
         jLabel6.setText("Produto:");
@@ -213,8 +224,18 @@ public class TelaVendaEditar extends javax.swing.JInternalFrame {
         txtQuantidade.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("#0"))));
 
         btnAdicionar.setText("Adicionar");
+        btnAdicionar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnAdicionarActionPerformed(evt);
+            }
+        });
 
         btnRemover.setText("Remover");
+        btnRemover.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnRemoverActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -325,7 +346,26 @@ public class TelaVendaEditar extends javax.swing.JInternalFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnSalvarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSalvarActionPerformed
-
+         try {
+            
+            if(JOptionPane.showConfirmDialog(rootPane, "Deseja realmente salvar as alterações?") == 0){
+            
+                preencheObjeto();
+                
+                if(dao.Salvar(entidade)){
+                    JOptionPane.showMessageDialog(rootPane, "Operação concluída com sucesso!");
+                    preencheCampos();
+                }
+                else
+                    JOptionPane.showMessageDialog(rootPane, "Ocorreu um erro durante a execução! Procure o administrador do sistema.");
+            
+            } else {
+                JOptionPane.showMessageDialog(rootPane, "Operação cancelada!");
+            }
+            
+        } catch (ParseException ex) {
+            Logger.getLogger(TelaVendaEditar.class.getName()).log(Level.SEVERE, null, ex);
+        }
       
 
     }//GEN-LAST:event_btnSalvarActionPerformed
@@ -335,7 +375,7 @@ public class TelaVendaEditar extends javax.swing.JInternalFrame {
 
             if(dao.Apagar(entidade)){
                 JOptionPane.showMessageDialog(rootPane, "Operação concluída com sucesso!");
-                //entidade = new Cliente(0, "", "000.000.000-00", null);
+                entidade = new Venda(0,null, new Date(), BigDecimal.ZERO);
                 preencheCampos();
             }
             else
@@ -356,6 +396,33 @@ public class TelaVendaEditar extends javax.swing.JInternalFrame {
         this.setVisible(false);
     }//GEN-LAST:event_btnListagemActionPerformed
 
+    private void btnAdicionarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAdicionarActionPerformed
+        VendaItem item = new VendaItem(entidade, (Produto)cbxProdutos.getSelectedItem(), 
+                Integer.parseInt(txtQuantidade.getText()) );
+        
+        entidade.addItem(item);
+        
+        preencheCampos();
+    }//GEN-LAST:event_btnAdicionarActionPerformed
+
+    private void tblItensMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblItensMouseClicked
+        int linha = tblItens.getSelectedRow();
+        
+        itemSelecionado = entidade.getItens().get(linha);  //(VendaItem) tblItens.getModel().getValueAt(linha, 3);
+     
+        preencheCamposItem();
+    }//GEN-LAST:event_tblItensMouseClicked
+
+    private void btnRemoverActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRemoverActionPerformed
+        if(JOptionPane.showConfirmDialog(rootPane, "Deseja realmente remover o item?") == 0){
+            if(itemSelecionado != null){
+                entidade.removeItem(itemSelecionado);
+                preencheCampos();
+                JOptionPane.showMessageDialog(rootPane, "Item removido com sucesso!");
+            }
+        }
+    }//GEN-LAST:event_btnRemoverActionPerformed
+
     
     private void preencheObjeto() throws ParseException{
         entidade.setCliente((Cliente)cbxClientes.getSelectedItem());
@@ -372,13 +439,11 @@ public class TelaVendaEditar extends javax.swing.JInternalFrame {
         
         DefaultTableModel itens = new DefaultTableModel();
         
-        itens.addColumn("ID");
         itens.addColumn("Produto");
         itens.addColumn("Qtd");
         
         for(VendaItem i : entidade.getItens()){
             Vector valor = new Vector();
-            valor.add(i.getId());
             valor.add(i.getProduto().getNome());
             valor.add(i.getQuantidade());
             valor.add(i);
@@ -386,6 +451,11 @@ public class TelaVendaEditar extends javax.swing.JInternalFrame {
         }
         
         tblItens.setModel(itens);
+    }
+    
+    private void preencheCamposItem() {
+        cbxProdutos.setSelectedItem(itemSelecionado.getProduto());
+        txtQuantidade.setText( Integer.toString( itemSelecionado.getQuantidade()  ));
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
