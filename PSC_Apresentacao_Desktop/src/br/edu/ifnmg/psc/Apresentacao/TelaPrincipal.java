@@ -5,6 +5,22 @@
  */
 package br.edu.ifnmg.psc.Apresentacao;
 
+import br.edu.ifnmg.psc.Aplicacao.ClienteRepositorio;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import net.sf.jasperreports.engine.JRDataSource;
+import net.sf.jasperreports.engine.JRException;
+import net.sf.jasperreports.engine.JasperFillManager;
+import net.sf.jasperreports.engine.JasperPrint;
+import net.sf.jasperreports.engine.JasperReport;
+import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
+import net.sf.jasperreports.engine.util.JRLoader;
+import net.sf.jasperreports.view.JasperViewer;
+
 /**
  *
  * @author petronio
@@ -33,6 +49,7 @@ public class TelaPrincipal extends javax.swing.JFrame {
         jMenuItemClientes = new javax.swing.JMenuItem();
         jMenuItemProdutos = new javax.swing.JMenuItem();
         jMenu2 = new javax.swing.JMenu();
+        mnuRelatorioClientes = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Sistema PSC");
@@ -66,6 +83,15 @@ public class TelaPrincipal extends javax.swing.JFrame {
         jMenuBar1.add(jMenuGerenciar);
 
         jMenu2.setText("Relatórios");
+
+        mnuRelatorioClientes.setText("Clientes");
+        mnuRelatorioClientes.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                mnuRelatorioClientesActionPerformed(evt);
+            }
+        });
+        jMenu2.add(mnuRelatorioClientes);
+
         jMenuBar1.add(jMenu2);
 
         setJMenuBar(jMenuBar1);
@@ -102,6 +128,13 @@ public class TelaPrincipal extends javax.swing.JFrame {
         tela.setVisible(true);
     }//GEN-LAST:event_jMenuItemVendasActionPerformed
 
+    private void mnuRelatorioClientesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuRelatorioClientesActionPerformed
+        
+        ClienteRepositorio dao = GerenciadorReferencias.getCliente();
+        
+        exibeRelatorioJasper("Clientes.jasper", dao.Buscar(null) );
+    }//GEN-LAST:event_mnuRelatorioClientesActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -136,6 +169,34 @@ public class TelaPrincipal extends javax.swing.JFrame {
             }
         });
     }
+    
+    private void exibeRelatorioJasper(String caminho_relatorio, List dados) {
+
+        try {
+            // Parâmetros
+            Map parametros = new HashMap();
+
+            // Pega o caminho do arquivo do relatório
+            URL arquivo = getClass().getResource(caminho_relatorio);
+            
+            // Carrega o relatório na memória
+            JasperReport relatorio = (JasperReport) JRLoader.loadObject(arquivo);
+            
+            JRDataSource fontededados = new JRBeanCollectionDataSource(dados, true);
+            
+            JasperPrint jasperPrint = JasperFillManager.fillReport(relatorio, parametros, fontededados);
+            
+            // Visualiza o relatório
+            JasperViewer jrviewer = new JasperViewer(jasperPrint, false);
+            
+            jrviewer.setVisible(true);
+        
+        } catch (JRException ex) {
+            Logger.getLogger(JasperReport.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JMenu jMenu2;
@@ -144,5 +205,6 @@ public class TelaPrincipal extends javax.swing.JFrame {
     private javax.swing.JMenuItem jMenuItemClientes;
     private javax.swing.JMenuItem jMenuItemProdutos;
     private javax.swing.JMenuItem jMenuItemVendas;
+    private javax.swing.JMenuItem mnuRelatorioClientes;
     // End of variables declaration//GEN-END:variables
 }
